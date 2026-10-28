@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Purchaser management{% endblock %}{% block section %}Purchasers{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">ADMINISTRATION</p><h1>Purchasers</h1><p>Purchaser accounts and their request and order history.</p></div><a class="button button-primary" href="{{ url_for('admin_users', role='Purchaser') }}">＋ Add purchaser</a></div>
+<section class="panel"><div class="panel-heading"><div><h2>Purchaser directory</h2><p>Disable inactive accounts without removing transaction history.</p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>Purchaser</th><th>Contact</th><th>Account</th><th>Requests</th><th>Orders</th><th>Actions</th></tr></thead><tbody>
+    {% for purchaser in purchasers %}<tr>
+      <td class="strong">{{ purchaser.name }}<small class="cell-sub">Joined {{ purchaser.created_at.strftime('%b %d, %Y') }}</small></td>
+      <td>{{ purchaser.email }}<small class="cell-sub">{{ purchaser.phone or 'No phone' }}</small></td>
+      <td><span class="badge {{ 'status-approved' if purchaser.is_active else 'status-rejected' }}">{{ 'Active' if purchaser.is_active else 'Disabled' }}</span></td>
+      <td>{{ purchaser.request_count }}</td><td>{{ purchaser.order_count }}</td>
+      <td><div class="material-actions"><a class="button button-secondary button-xs" href="{{ url_for('admin_edit_user', user_id=purchaser.user_id) }}">Edit</a><a class="button button-secondary button-xs" href="{{ url_for('admin_requests', purchaser_id=purchaser.user_id) }}">Requests &amp; orders</a></div></td>
+    </tr>{% else %}<tr><td colspan="6" class="empty-inline">No purchaser accounts found.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

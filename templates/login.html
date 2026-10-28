@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ expected_role ~ ' sign in' if expected_role else 'Sign in' }}{% endblock %}
+{% block public_content %}
+<main class="auth-wrap"><section class="auth-card"><div class="auth-kicker">{% if expected_role %}{{ expected_role|upper }} ACCESS{% else %}WELCOME BACK{% endif %}</div><h1>{{ expected_role ~ ' sign in' if expected_role else 'Sign in to your workspace' }}</h1><p class="muted">Use your registered email and password to continue.</p>
+  <form method="post" class="form-stack">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <label>Email address<input name="email" type="email" autocomplete="email" required maxlength="254" value="{{ request.form.get('email', '') }}" placeholder="you@company.com"></label>
+    <label>Password<input name="password" type="password" autocomplete="current-password" required placeholder="Enter your password"></label>
+    <button class="button button-primary button-wide" type="submit">Sign in <span>→</span></button>
+  </form><div class="auth-switch">{% if expected_role %}Not a {{ expected_role|lower }}? <a href="{{ url_for('login') }}">Choose another sign-in</a>{% else %}New to SiteLedger? <a href="{{ url_for('register') }}">Create an account</a>{% endif %}</div>
+  <div class="login-role-links"><span>Sign in as</span><a href="{{ url_for('admin_login') }}">Admin</a><a href="{{ url_for('purchaser_login') }}">Purchaser</a><a href="{{ url_for('supplier_login') }}">Supplier</a></div>
+</section><aside class="auth-aside"><span class="eyebrow">YOUR SITE, IN SYNC</span><h2>Less chasing.<br>More building.</h2><p>Follow each request from the first material comparison through supplier fulfillment and delivery.</p><div class="aside-stat"><span class="stat-check">✓</span><span><strong>Every step accounted for</strong><small>Approvals, orders, and deliveries in one place.</small></span></div></aside></main>
+{% endblock %}

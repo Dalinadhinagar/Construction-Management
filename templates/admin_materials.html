@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Materials catalog{% endblock %}{% block section %}Materials{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">CATALOG</p><h1>Materials</h1><p>Manage supplier listings, pricing, and available stock.</p></div></div>
+<div class="split-layout">
+  <section class="panel"><div class="panel-heading"><div><h2>All listings</h2><p>{{ materials|length }} material offers</p></div></div>
+    {% if materials %}<div class="table-wrap"><table><thead><tr><th>Material name</th><th>Description</th><th>Supplier</th><th>Unit</th><th>Price per unit</th><th>Available stock</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+      {% for material in materials %}<tr>
+        <td class="strong">{{ material.material_name }}</td><td>{{ material.description or '—' }}</td>
+        <td>{{ material.supplier_name }}</td><td>{{ material.unit }}</td><td>${{ '%.2f'|format(material.price) }}</td>
+        <td><span class="badge {{ 'status-cancelled' if material.stock_quantity == 0 else 'status-approved' }}">{{ "{:,}".format(material.stock_quantity) }} {{ material.unit }}</span></td>
+        <td><span class="badge {{ 'status-approved' if material.is_active else 'status-cancelled' }}">{{ 'Active' if material.is_active else 'Archived' }}</span></td>
+        <td><div class="material-actions">{% if material.is_active %}<a class="button button-secondary button-xs" href="{{ url_for('admin_edit_material', material_id=material.material_id) }}">Edit</a><form method="post" action="{{ url_for('admin_delete_material', material_id=material.material_id) }}" data-confirm="Delete {{ material.material_name }} if unused, or archive it if purchase history exists?"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button class="button button-danger-outline button-xs" type="submit">Delete</button></form>{% else %}<form method="post" action="{{ url_for('admin_restore_material', material_id=material.material_id) }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button class="button button-secondary button-xs" type="submit">Restore</button></form>{% endif %}</div></td>
+      </tr>{% endfor %}
+    </tbody></table></div>{% else %}<div class="empty-inline">No suppliers have listed materials yet.</div>{% endif %}
+  </section>
+  <section class="panel form-panel"><div class="panel-heading"><div><h2>Add a material</h2><p>Create a listing on behalf of an active supplier.</p></div></div>
+    {% if suppliers %}<form method="post" class="form-stack compact-form"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <label>Supplier<select name="supplier_id" required><option value="">Choose supplier</option>{% for supplier in suppliers %}<option value="{{ supplier.user_id }}">{{ supplier.name }}</option>{% endfor %}</select></label>
+      <label>Material name<input name="material_name" required maxlength="150"></label>
+      <label>Description <span class="optional">(optional)</span><textarea name="description" rows="3" maxlength="2000"></textarea></label>
+      <div class="form-row"><label>Unit<input name="unit" required maxlength="40"></label><label>Price per unit<input name="price" type="number" min="0.01" step="0.01" required></label></div>
+      <label>Available stock<input name="stock_quantity" type="number" min="0" step="1" value="0" required></label>
+      <button class="button button-primary" type="submit">Add listing</button>
+    </form>{% else %}<div class="empty-inline">Create an active Supplier account before adding listings.</div>{% endif %}
+  </section>
+</div>
+{% endblock %}

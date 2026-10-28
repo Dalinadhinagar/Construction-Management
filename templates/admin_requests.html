@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Requests & orders{% endblock %}{% block section %}Requests & orders{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">PROCUREMENT FLOW</p><h1>Requests &amp; orders</h1><p>Review incoming requests, assign supplier orders, and monitor delivery progress.</p></div></div>
+<section class="panel">
+  <div class="panel-heading"><div><h2>Purchase requests</h2><p>Review each request before supplier assignment.</p></div></div>
+  {% if requests %}<div class="table-wrap"><table><thead><tr><th>Request</th><th>Purchaser</th><th>Required by</th><th>Items</th><th>Estimated total</th><th>Status</th><th>Review</th></tr></thead><tbody>
+    {% for row in requests %}<tr>
+      <td class="strong">#{{ row.request_id }}<small class="cell-sub">{{ row.request_date.strftime('%b %d, %Y') }}</small></td>
+      <td><a href="{{ url_for('admin_requests', purchaser_id=row.purchaser_id) }}">{{ row.purchaser_name }}</a><small class="cell-sub">{{ row.purchaser_email }}</small></td>
+      <td>{{ row.required_date.strftime('%b %d, %Y') }}</td><td>{{ row.item_count }}</td><td>${{ '%.2f'|format(row.request_total) }}</td>
+      <td><span class="badge status-{{ row.status|lower }}">{{ row.status }}</span></td>
+      <td>{% if row.status == 'Pending' %}<div class="inline-actions">
+        <form method="post" action="{{ url_for('admin_request_decision', request_id=row.request_id) }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="decision" value="Approved"><button class="button button-success button-xs">Approve</button></form>
+        <form method="post" action="{{ url_for('admin_request_decision', request_id=row.request_id) }}" data-confirm="Reject request #{{ row.request_id }}?"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="decision" value="Rejected"><button class="button button-danger-outline button-xs">Reject</button></form>
+      </div>{% else %}—{% endif %}</td>
+    </tr>{% endfor %}
+  </tbody></table></div>{% else %}<div class="empty-inline">No purchase requests yet.</div>{% endif %}
+</section>
+<section class="panel">
+  <div class="panel-heading"><div><h2>Assign approved items</h2><p>Choose an active supplier that offers every selected material and has enough stock. Request estimates and supplier order totals are calculated separately.</p></div></div>
+  {% if assignments %}<div class="table-wrap"><table><thead><tr><th>Request</th><th>Purchaser</th><th>Material items</th><th>Selected supplier</th><th>Supplier order total</th><th>Delivery address &amp; action</th></tr></thead><tbody>
+    {% for row in assignments %}<tr>
+      <td class="strong">#{{ row.request_id }}<small class="cell-sub">Due {{ row.required_date.strftime('%b %d, %Y') }}</small></td>
+      <td>{{ row.purchaser_name }}</td>
+      <td>{{ row.items_summary }}<small class="cell-sub">{{ row.item_count }} item(s)</small></td>
+      <td colspan="3">
+        {% if row.suppliers %}
+        <form method="post" class="assign-form" action="{{ url_for('admin_assign_order', request_id=row.request_id) }}">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          {% for item in row.lines %}<input type="hidden" name="request_item_id" value="{{ item.request_item_id }}">{% endfor %}
+          <label>Supplier<select class="supplier-choice" name="supplier_id" required>
+            {% for supplier in row.suppliers %}<option value="{{ supplier.supplier_id }}" data-total="{{ '%.2f'|format(supplier.total) }}" {% if supplier.supplier_id == row.selected_supplier_id %}selected{% endif %}>{{ supplier.supplier_name }} · Active · {{ '%.2f'|format(supplier.total) }}</option>{% endfor %}
+          </select></label>
+          <span class="assignment-total"><span>Order total</span><strong data-assignment-total>${{ '%.2f'|format(row.supplier_total) }}</strong></span>
+          <label>Delivery address<input name="delivery_address" placeholder="Site name and street address" required maxlength="500"></label>
+          <button class="button button-primary button-xs" type="submit">Assign order</button>
+        </form>
+        {% else %}<span class="badge status-pending">No eligible supplier offer</span><small class="cell-sub">Active supplier offer with sufficient stock required.</small>{% endif %}
+      </td>
+    </tr>{% endfor %}
+  </tbody></table></div>{% else %}<div class="empty-inline">There are no approved supplier groups waiting for assignment.</div>{% endif %}
+</section>
+<section class="panel">
+  <div class="panel-heading"><div><h2>Order &amp; delivery monitor</h2><p>Orders retain their supplier-specific item and price snapshots. Reassignment is available only before supplier acceptance.</p></div></div>
+  {% if orders %}<div class="table-wrap"><table><thead><tr><th>Order</th><th>Purchaser</th><th>Required by</th><th>Supplier</th><th>Assigned items</th><th>Delivery address</th><th>Order total</th><th>Status</th><th>Delivery</th><th>Actions</th></tr></thead><tbody>
+    {% for order in orders %}<tr>
+      <td class="strong">#{{ order.order_id }}<small class="cell-sub">Request #{{ order.request_id }} · {{ order.request_status }}</small></td>
+      <td>{{ order.purchaser_name }}</td><td>{{ order.required_date.strftime('%b %d, %Y') }}</td>
+      <td>{{ order.supplier_name }}</td><td>{{ order.items_summary or 'No saved order items' }}</td><td>{{ order.delivery_address or '—' }}</td>
+      <td>${{ '%.2f'|format(order.total_amount) }}{% if order.snapshot_mismatch %}<small class="cell-sub text-danger">Stored total differs from saved line totals (${{ '%.2f'|format(order.snapshot_total) }})</small>{% endif %}</td>
+      <td><span class="badge status-{{ order.order_status|lower }}">{{ order.order_status }}</span></td>
+      <td><span class="badge status-{{ (order.delivery_status or 'Pending')|lower|replace(' ', '-') }}">{{ order.delivery_status or 'Pending' }}</span></td>
+      <td class="action-cell">{% if order.order_status in ['Confirmed', 'Cancelled'] and order.suppliers %}<form method="post" class="reassign-form" action="{{ url_for('admin_reassign_order', order_id=order.order_id) }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><label>Reassign supplier<select name="supplier_id" required><option value="" selected disabled>Choose an eligible supplier</option>{% for supplier in order.suppliers %}<option value="{{ supplier.supplier_id }}" data-total="{{ '%.2f'|format(supplier.total) }}">{{ supplier.supplier_name }} · {{ '%.2f'|format(supplier.total) }}</option>{% endfor %}</select></label><span class="reassign-total" data-assignment-total>Select a supplier</span><button class="button button-secondary button-xs" type="submit">Reassign</button></form>{% else %}—{% endif %}</td>
+    </tr>{% endfor %}
+  </tbody></table></div>{% else %}<div class="empty-inline">No orders have been assigned.</div>{% endif %}
+</section>
+{% endblock %}

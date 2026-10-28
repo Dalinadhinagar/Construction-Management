@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Smarter site procurement{% endblock %}
+{% block public_content %}
+<main class="landing">
+  <section class="hero">
+    <div class="hero-copy"><span class="eyebrow"><span class="live-dot"></span> PROCUREMENT, MADE CLEAR</span><h1>Build with confidence.<br><em>Manage every detail.</em></h1><p>Keep material sourcing, purchase approvals, and supplier deliveries connected in one practical workspace.</p><div class="hero-actions"><a class="button button-primary" href="{{ url_for('login') }}">Open your workspace <span>→</span></a><a class="text-link" href="{{ url_for('register') }}">Create an account</a></div><div class="hero-note">Designed for admins, suppliers, and purchasers.</div></div>
+    <div class="hero-visual"><div class="visual-grid"></div><div class="mock-card"><div class="mock-head"><span class="mock-icon">▦</span><span class="mock-label">ACTIVE PROCUREMENT</span><span class="mock-pill">LIVE</span></div><div class="mock-number">Keep work moving<span>↗</span></div><div class="mock-sub">Requests, pricing, and delivery status in sync.</div><div class="mock-row"><span class="mock-avatar avatar-amber">C</span><span><strong>Portland Cement</strong><small>BuildRight Supplies</small></span><b>$8.75 <small>/ bag</small></b></div><div class="mock-row"><span class="mock-avatar avatar-blue">R</span><span><strong>Reinforcing Bar</strong><small>NorthStar Materials</small></span><b>$12.75 <small>/ piece</small></b></div><div class="mock-status"><span class="status-dot"></span> Order progressing <span>Processing</span></div></div><div class="floating-note"><span>✓</span> Request approved <small>Order is ready to fulfill</small></div></div>
+  </section>
+  <section class="role-access"><div><p class="eyebrow">CHOOSE YOUR WORKSPACE</p><h2>Sign in by role</h2></div><div class="role-access-grid"><a href="{{ url_for('admin_login') }}"><span>01</span><strong>Admin</strong><small>Manage the workspace</small><b>→</b></a><a href="{{ url_for('purchaser_login') }}"><span>02</span><strong>Purchaser</strong><small>Requests and materials</small><b>→</b></a><a href="{{ url_for('supplier_login') }}"><span>03</span><strong>Supplier</strong><small>Assigned orders</small><b>→</b></a></div></section>
+  <section class="feature-row"><div><strong>One shared view</strong><span>Stay aligned from request to delivery.</span></div><div><strong>Supplier comparison</strong><span>Review prices and stock before ordering.</span></div><div><strong>Clear accountability</strong><span>Know who owns the next step.</span></div></section>
+</main>
+<footer class="public-footer">SiteLedger <span>·</span> Construction procurement, organized.</footer>
+{% endblock %}

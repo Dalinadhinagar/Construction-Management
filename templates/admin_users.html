@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}User management{% endblock %}{% block section %}Users{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">ADMINISTRATION</p><h1>User management</h1><p>Manage workspace accounts, permissions, and account access.</p></div><span class="page-count">{{ total_users }} accounts</span></div>
+<div class="split-layout">
+  <section class="panel">
+    <div class="panel-heading"><div><h2>Team directory</h2><p>Filter and manage active or disabled accounts.</p></div></div>
+    <form method="get" class="directory-filter">
+      <input type="hidden" name="sort" value="{{ sort_by }}"><input type="hidden" name="direction" value="{{ sort_direction }}">
+      <label>Search<input type="search" name="q" value="{{ search }}" placeholder="Name or email"></label>
+      <label>Role<select name="role"><option value="">All roles</option>{% for role in ['Admin', 'Supplier', 'Purchaser'] %}<option value="{{ role }}" {% if role_filter == role %}selected{% endif %}>{{ role }}</option>{% endfor %}</select></label>
+      <button class="button button-secondary" type="submit">Apply filters</button>
+    </form>
+    <div class="table-wrap"><table><thead><tr>
+      <th><a href="{{ url_for('admin_users', q=search, role=role_filter, sort='name', direction='asc' if sort_by == 'name' and sort_direction == 'desc' else 'desc') }}">Name{% if sort_by == 'name' %} {{ '↑' if sort_direction == 'asc' else '↓' }}{% endif %}</a></th>
+      <th><a href="{{ url_for('admin_users', q=search, role=role_filter, sort='email', direction='asc' if sort_by == 'email' and sort_direction == 'desc' else 'desc') }}">Email{% if sort_by == 'email' %} {{ '↑' if sort_direction == 'asc' else '↓' }}{% endif %}</a></th>
+      <th><a href="{{ url_for('admin_users', q=search, role=role_filter, sort='role', direction='asc' if sort_by == 'role' and sort_direction == 'desc' else 'desc') }}">Role{% if sort_by == 'role' %} {{ '↑' if sort_direction == 'asc' else '↓' }}{% endif %}</a></th>
+      <th>Account</th><th>Phone</th>
+      <th><a href="{{ url_for('admin_users', q=search, role=role_filter, sort='created', direction='asc' if sort_by == 'created' and sort_direction == 'desc' else 'desc') }}">Joined{% if sort_by == 'created' %} {{ '↑' if sort_direction == 'asc' else '↓' }}{% endif %}</a></th>
+      <th>Manage</th></tr></thead><tbody>
+      {% for user in users %}
+      <tr>
+        <td class="strong">{{ user.name }}</td><td>{{ user.email }}</td>
+        <td><span class="role-label role-{{ user.role|lower }}">{{ 'Legacy account' if user.role not in ['Admin', 'Supplier', 'Purchaser'] else user.role }}</span></td>
+        <td><span class="badge {{ 'status-approved' if user.is_active else 'status-rejected' }}">{{ 'Active' if user.is_active else 'Disabled' }}</span></td>
+        <td>{{ user.phone or '—' }}</td><td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+        <td><div class="material-actions">
+          <a class="button button-secondary button-xs" href="{{ url_for('admin_edit_user', user_id=user.user_id) }}">Edit</a>
+          {% if user.user_id != session.get('user_id') %}
+          <form method="post" action="{{ url_for('admin_toggle_user', user_id=user.user_id) }}" data-confirm="{{ 'Enable' if not user.is_active else 'Disable' }} {{ user.name }}'s account?"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button class="button {{ 'button-success' if not user.is_active else 'button-danger-outline' }} button-xs">{{ 'Enable' if not user.is_active else 'Disable' }}</button></form>
+          {% endif %}
+        </div></td>
+      </tr>
+      {% else %}<tr><td colspan="7" class="empty-inline">No accounts match your filters.</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% if page_count > 1 %}<div class="pagination"><span>Page {{ page }} of {{ page_count }}</span><div>{% if page > 1 %}<a class="button button-secondary button-xs" href="{{ url_for('admin_users', q=search, role=role_filter, sort=sort_by, direction=sort_direction, page=page-1) }}">Previous</a>{% endif %}{% if page < page_count %}<a class="button button-secondary button-xs" href="{{ url_for('admin_users', q=search, role=role_filter, sort=sort_by, direction=sort_direction, page=page+1) }}">Next</a>{% endif %}</div></div>{% endif %}
+  </section>
+  <section class="panel form-panel">
+    <div class="panel-heading"><div><h2>Add a user</h2><p>Create an account for any workspace role.</p></div></div>
+    <form method="post" class="form-stack compact-form"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <label>Name<input name="name" required maxlength="120"></label>
+      <label>Email<input name="email" type="email" required maxlength="254"></label>
+      <label>Phone <span class="optional">(optional)</span><input name="phone" maxlength="30"></label>
+      <label>Role<select name="role" required><option value="">Choose role</option><option>Admin</option><option>Supplier</option><option>Purchaser</option></select></label>
+      <label>Temporary password<input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+      <button class="button button-primary" type="submit">Create user</button>
+    </form>
+    <div class="panel-heading"><div><h2>Reset a password</h2><p>Set a new password for an active account.</p></div></div>
+    <form method="post" action="{{ url_for('admin_reset_password') }}" class="form-stack compact-form"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <label>User<select name="user_id" required>{% for user in active_users %}<option value="{{ user.user_id }}">{{ user.name }} — {{ user.email }}</option>{% endfor %}</select></label>
+      <label>New password<input name="new_password" type="password" required minlength="8" autocomplete="new-password"></label>
+      <button class="button button-secondary" type="submit">Reset password</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

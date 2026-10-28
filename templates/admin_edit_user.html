@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Edit user{% endblock %}{% block section %}Users{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">ADMINISTRATION</p><h1>Edit account</h1><p>Update account details and access role.</p></div><a class="button button-secondary" href="{{ url_for('admin_users') }}">← Back to users</a></div>
+<section class="panel edit-material-panel"><div class="panel-heading"><div><h2>{{ user.name }}</h2><p>{{ 'Active' if user.is_active else 'Disabled' }} account</p></div></div>
+  <form method="post" class="form-stack compact-form"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <label>Name<input name="name" required maxlength="120" value="{{ user.name }}"></label>
+    <label>Email<input name="email" type="email" required maxlength="254" value="{{ user.email }}"></label>
+    <label>Phone<input name="phone" maxlength="30" value="{{ user.phone or '' }}"></label>
+    <label>Role<select name="role" required>{% if user.role == 'User' %}<option value="" selected disabled>Legacy role — choose a supported role</option>{% endif %}{% for role in ['Admin', 'Supplier', 'Purchaser'] %}<option value="{{ role }}" {% if user.role == role %}selected{% endif %}>{{ role }}</option>{% endfor %}</select></label>
+    <div class="form-actions"><button class="button button-primary" type="submit">Save account</button><a class="button button-secondary" href="{{ url_for('admin_users') }}">Cancel</a></div>
+  </form>
+</section>
+{% endblock %}

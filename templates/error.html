@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} · Something went wrong{% endblock %}
+{% block content %}
+<section class="empty-state"><span class="empty-icon">!</span><p class="eyebrow">ERROR {{ code }}</p><h1>We couldn't complete that</h1><p>{{ message }}</p>{% if code == 503 %}<div class="summary-note setup-hint"><strong>Check your local database settings</strong><p>Confirm MySQL is running and that <code>construction_management</code> has been created. Set <code>MYSQL_HOST</code>, <code>MYSQL_USER</code>, and <code>MYSQL_PASSWORD</code> in the project's <code>.env</code> file, then restart Flask. See the README setup steps.</p></div>{% endif %}<a class="button button-primary" href="{{ url_for('dashboard') if session.get('user_id') else url_for('index') }}">Return to workspace</a></section>
+{% endblock %}
+{% block public_content %}
+<section class="empty-state public-error"><span class="empty-icon">!</span><p class="eyebrow">ERROR {{ code }}</p><h1>We couldn't complete that</h1><p>{{ message }}</p>{% if code == 503 %}<div class="summary-note setup-hint"><strong>Check your local database settings</strong><p>Confirm MySQL is running and that <code>construction_management</code> has been created. Set <code>MYSQL_HOST</code>, <code>MYSQL_USER</code>, and <code>MYSQL_PASSWORD</code> in the project's <code>.env</code> file, then restart Flask. See the README setup steps.</p></div>{% endif %}<a class="button button-primary" href="{{ url_for('index') }}">Return home</a></section>
+{% endblock %}

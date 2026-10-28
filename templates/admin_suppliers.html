@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Supplier management{% endblock %}{% block section %}Suppliers{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">ADMINISTRATION</p><h1>Suppliers</h1><p>Supplier accounts, catalog size, and order history.</p></div><a class="button button-primary" href="{{ url_for('admin_users', role='Supplier') }}">＋ Add supplier</a></div>
+<section class="panel"><div class="panel-heading"><div><h2>Supplier directory</h2><p>Suppliers are user accounts with the Supplier role.</p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>Supplier</th><th>Contact</th><th>Account</th><th>Materials</th><th>Orders</th><th>Order value</th><th>Actions</th></tr></thead><tbody>
+    {% for supplier in suppliers %}<tr>
+      <td class="strong">{{ supplier.name }}<small class="cell-sub">Joined {{ supplier.created_at.strftime('%b %d, %Y') }}</small></td>
+      <td>{{ supplier.email }}<small class="cell-sub">{{ supplier.phone or 'No phone' }}</small></td>
+      <td><span class="badge {{ 'status-approved' if supplier.is_active else 'status-rejected' }}">{{ 'Active' if supplier.is_active else 'Disabled' }}</span></td>
+      <td>{{ supplier.material_count }}</td><td>{{ supplier.order_count }}</td><td>${{ '%.2f'|format(supplier.order_value) }}</td>
+      <td><div class="material-actions"><a class="button button-secondary button-xs" href="{{ url_for('admin_edit_user', user_id=supplier.user_id) }}">Edit</a><a class="button button-secondary button-xs" href="{{ url_for('admin_materials', supplier_id=supplier.user_id) }}">Materials</a><a class="button button-secondary button-xs" href="{{ url_for('admin_requests', supplier_id=supplier.user_id) }}">Orders</a></div></td>
+    </tr>{% else %}<tr><td colspan="7" class="empty-inline">No supplier accounts found.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

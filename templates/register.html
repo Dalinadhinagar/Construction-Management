@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Create account{% endblock %}
+{% block public_content %}
+<main class="auth-wrap"><section class="auth-card"><div class="auth-kicker">GET STARTED</div><h1>Create your account</h1><p class="muted">Join the workspace as a supplier or purchaser.</p>
+  <form method="post" class="form-stack">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <label>Full name<input name="name" required maxlength="120" autocomplete="name" value="{{ request.form.get('name', '') }}"></label>
+    <label>Email address<input name="email" type="email" required maxlength="254" autocomplete="email" value="{{ request.form.get('email', '') }}"></label>
+    <label>Phone <span class="optional">(optional)</span><input name="phone" maxlength="30" autocomplete="tel" value="{{ request.form.get('phone', '') }}"></label>
+    <label>Account type<select name="role" required><option value="">Choose a role</option><option value="Purchaser" {% if request.form.get('role') == 'Purchaser' %}selected{% endif %}>Purchaser</option><option value="Supplier" {% if request.form.get('role') == 'Supplier' %}selected{% endif %}>Supplier</option></select></label>
+    <label>Password<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
+    <label>Confirm password<input name="confirm_password" type="password" minlength="8" required autocomplete="new-password"></label>
+    <button class="button button-primary button-wide" type="submit">Create account <span>→</span></button>
+  </form><div class="auth-switch">Already registered? <a href="{{ url_for('login') }}">Sign in</a></div>
+</section><aside class="auth-aside"><span class="eyebrow">BUILT FOR THE WHOLE TEAM</span><h2>One clear view<br>from quote to site.</h2><p>Compare available materials, coordinate approvals, and follow order progress without losing track of the details.</p><div class="role-mini"><span>01</span> Purchasers request what projects need</div><div class="role-mini"><span>02</span> Suppliers fulfill and update delivery status</div><div class="role-mini"><span>03</span> Admins keep the workflow moving</div></aside></main>
+{% endblock %}

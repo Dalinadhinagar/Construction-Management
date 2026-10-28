@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Construction Management{% endblock %} · SiteLedger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script defer src="{{ url_for('static', filename='js/script.js') }}"></script>
+</head>
+<body>
+{% if session.get('user_id') %}
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="{{ url_for('dashboard') }}"><span class="brand-mark">S</span><span>SiteLedger<small>CONSTRUCTION OPS</small></span></a>
+      <div class="side-label">WORKSPACE</div>
+      <nav class="side-nav">
+        {% if session.get('role') == 'Admin' %}
+          <a class="{% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">◫ <span>Overview</span></a>
+          <a class="{% if request.endpoint in ['admin_requests', 'admin_request_decision', 'admin_assign_order', 'admin_reassign_order'] %}active{% endif %}" href="{{ url_for('admin_requests') }}">⇄ <span>Requests &amp; orders</span></a>
+          <a class="{% if request.endpoint in ['admin_materials', 'admin_edit_material', 'admin_delete_material'] %}active{% endif %}" href="{{ url_for('admin_materials') }}">▦ <span>Materials</span></a>
+          <a class="{% if request.endpoint in ['admin_users', 'admin_edit_user', 'admin_toggle_user', 'admin_reset_password'] %}active{% endif %}" href="{{ url_for('admin_users') }}">♙ <span>Users</span></a>
+          <a class="{% if request.endpoint == 'admin_suppliers' %}active{% endif %}" href="{{ url_for('admin_suppliers') }}">◈ <span>Suppliers</span></a>
+          <a class="{% if request.endpoint == 'admin_purchasers' %}active{% endif %}" href="{{ url_for('admin_purchasers') }}">♧ <span>Purchasers</span></a>
+          <a class="{% if request.endpoint == 'admin_reports' %}active{% endif %}" href="{{ url_for('admin_reports') }}">▤ <span>Reports</span></a>
+        {% elif session.get('role') == 'Supplier' %}
+          <a class="{% if request.endpoint == 'supplier_dashboard' %}active{% endif %}" href="{{ url_for('supplier_dashboard') }}">◫ <span>Overview</span></a>
+          <a class="{% if request.endpoint in ['supplier_orders', 'supplier_order_decision', 'supplier_update_order_status'] %}active{% endif %}" href="{{ url_for('supplier_orders') }}">⇄ <span>Orders</span></a>
+          <a class="{% if request.endpoint in ['supplier_materials', 'supplier_update_stock', 'supplier_edit_material', 'supplier_delete_material'] %}active{% endif %}" href="{{ url_for('supplier_materials') }}">▦ <span>My materials</span></a>
+        {% elif session.get('role') == 'Purchaser' %}
+          <a class="{% if request.endpoint == 'purchaser_dashboard' %}active{% endif %}" href="{{ url_for('purchaser_dashboard') }}">◫ <span>Overview</span></a>
+          <a class="{% if request.endpoint == 'purchaser_materials' %}active{% endif %}" href="{{ url_for('purchaser_materials') }}">▦ <span>Browse materials</span></a>
+          <a class="{% if request.endpoint == 'purchaser_new_request' %}active{% endif %}" href="{{ url_for('purchaser_new_request') }}">＋ <span>New request</span></a>
+          <a class="{% if request.endpoint == 'purchaser_history' %}active{% endif %}" href="{{ url_for('purchaser_history') }}">◷ <span>Request history</span></a>
+        {% endif %}
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="profile-chip"><span class="avatar">{{ session.get('name', 'U')[:1]|upper }}</span><span><strong>{{ session.get('name') }}</strong><small>{{ session.get('role') }}</small></span></div>
+        <a class="account-link" href="{{ url_for('change_password') }}">⚙ <span>Change password</span></a>
+        <form action="{{ url_for('logout') }}" method="post">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <button class="logout-button" type="submit">↪ <span>Sign out</span></button>
+        </form>
+      </div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar"><button class="menu-toggle" type="button" aria-label="Toggle navigation" data-menu-toggle>☰</button><div class="breadcrumb">Construction / <strong>{% block section %}Workspace{% endblock %}</strong></div><div class="topbar-user">{{ session.get('role') }} workspace</div></header>
+      <section class="page-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}<div class="flash-stack">{% for category, message in messages %}<div class="flash flash-{{ category }}" role="status">{{ message }}<button type="button" aria-label="Dismiss" data-dismiss>×</button></div>{% endfor %}</div>{% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </section>
+    </main>
+  </div>
+{% else %}
+  <div class="public-shell">
+    <header class="public-header"><a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">S</span><span>SiteLedger<small>CONSTRUCTION OPS</small></span></a><nav><a href="{{ url_for('login') }}">Sign in</a><a class="button button-primary button-small" href="{{ url_for('register') }}">Create account</a></nav></header>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}<div class="public-flashes">{% for category, message in messages %}<div class="flash flash-{{ category }}" role="status">{{ message }}<button type="button" aria-label="Dismiss" data-dismiss>×</button></div>{% endfor %}</div>{% endif %}
+    {% endwith %}
+    {% block public_content %}{% endblock %}
+  </div>
+{% endif %}
+</body>
+</html>

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}New purchase request{% endblock %}
+{% block section %}New request{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">PURCHASING</p>
+    <h1>New purchase request</h1>
+    <p>Compare supplier offers for each material, then enter the quantity you need.</p>
+  </div>
+  <a class="text-link" href="{{ url_for('purchaser_materials') }}">← Compare materials</a>
+</div>
+{% if materials %}
+<form method="post" class="request-layout">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+  <section class="panel">
+    <div class="panel-heading">
+      <div><h2>Request items</h2><p>Select one offer for each material. The server verifies price and stock before saving.</p></div>
+    </div>
+    <div class="table-wrap">
+      <table class="request-table">
+        <thead><tr><th>Select</th><th>Material</th><th>Supplier offer</th><th>Unit price</th><th>Available</th><th>Quantity</th></tr></thead>
+        <tbody>
+          {% for group in materials %}
+          {% set first_available = namespace(id=none) %}
+          {% for offer in group.offers %}
+            {% if first_available.id is none and offer.supplier_active and offer.stock_quantity > 0 %}
+              {% set first_available.id = offer.material_id %}
+            {% endif %}
+          {% endfor %}
+          <tr>
+            <td><input class="item-check" type="checkbox" {% if not first_available.id %}disabled{% endif %} aria-label="Select {{ group.material_name }}"></td>
+            <td class="strong">{{ group.material_name }}<small class="cell-sub">Compare eligible supplier offers</small></td>
+            <td>
+              <label class="sr-only" for="offer-{{ loop.index }}">Supplier offer for {{ group.material_name }}</label>
+              <select id="offer-{{ loop.index }}" class="material-id offer-select" name="material_id" disabled>
+                {% for offer in group.offers %}
+                <option value="{{ offer.material_id }}" data-stock="{{ offer.stock_quantity }}" data-price="{{ '%.2f'|format(offer.price) }}" data-unit="{{ offer.unit }}" {% if not offer.supplier_active or offer.stock_quantity <= 0 %}disabled{% endif %} {% if offer.material_id == first_available.id %}selected{% endif %}>
+                  {{ offer.supplier_name }}{% if offer.supplier_active %} · Active{% else %} · Inactive{% endif %}
+                  · ${{ '%.2f'|format(offer.price) }} / {{ offer.unit }}
+                  · {{ "{:,}".format(offer.stock_quantity) }} available
+                </option>
+                {% endfor %}
+              </select>
+            </td>
+            <td><span class="offer-price">{% if first_available.id %}—{% else %}—{% endif %}</span></td>
+            <td><span class="offer-stock">—</span></td>
+            <td><label class="sr-only" for="quantity-{{ loop.index }}">Quantity for {{ group.material_name }}</label><input id="quantity-{{ loop.index }}" class="quantity-input" type="number" min="1" max="2147483647" step="1" value="1" name="quantity" disabled></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <aside class="panel request-summary">
+    <div class="panel-heading"><div><h2>Delivery details</h2><p>Submit for administrator review.</p></div></div>
+    <label for="required-date">Required date<input id="required-date" type="date" name="required_date" min="{{ today }}" value="{{ today }}" required></label>
+    <div class="summary-note"><strong>What happens next?</strong><p>Your request is reviewed by an administrator. Approved items are assigned to suppliers, who update fulfillment and delivery status.</p></div>
+    <button class="button button-primary button-wide" type="submit">Submit request <span>→</span></button>
+  </aside>
+</form>
+{% else %}
+<section class="panel empty-state"><span class="empty-icon">▦</span><h2>No material offers available</h2><p>There are no supplier listings to compare right now.</p><a class="button button-secondary" href="{{ url_for('purchaser_materials') }}">Browse catalog</a></section>
+{% endif %}
+{% endblock %}

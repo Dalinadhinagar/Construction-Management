@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Admin overview{% endblock %}{% block section %}Overview{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">ADMINISTRATION</p><h1>Good to see you, {{ session.get('name') }}</h1><p>Here is the latest activity across your procurement workspace.</p></div><a class="button button-primary" href="{{ url_for('admin_requests') }}">Review requests <span>→</span></a></div>
+<div class="stats-grid">
+  <article class="stat-card"><span class="stat-icon tone-violet">♙</span><span class="stat-label">Registered users</span><strong>{{ user_count }}</strong><small>Across all account roles</small></article>
+  <article class="stat-card"><span class="stat-icon tone-blue">▦</span><span class="stat-label">Listed materials</span><strong>{{ material_count }}</strong><small>Available in the catalog</small></article>
+  <article class="stat-card"><span class="stat-icon tone-amber">◷</span><span class="stat-label">Pending requests</span><strong>{{ pending_count }}</strong><small>Waiting for your review</small></article>
+  <article class="stat-card"><span class="stat-icon tone-green">↗</span><span class="stat-label">Active orders</span><strong>{{ order_summary.total }}</strong><small>${{ '%.2f'|format(order_summary.value) }} total order value</small></article>
+</div>
+<section class="panel"><div class="panel-heading"><div><h2>Recent orders</h2><p>Latest supplier assignments and progress</p></div><a class="text-link" href="{{ url_for('admin_requests') }}">All orders →</a></div>
+{% if recent_orders %}<div class="table-wrap"><table><thead><tr><th>Order</th><th>Purchaser</th><th>Supplier</th><th>Placed</th><th>Value</th><th>Status</th></tr></thead><tbody>{% for order in recent_orders %}<tr><td class="strong">#{{ order.order_id }}</td><td>{{ order.purchaser_name }}</td><td>{{ order.supplier_name }}</td><td>{{ order.order_date.strftime('%b %d, %Y') }}</td><td>${{ '%.2f'|format(order.total_amount) }}</td><td><span class="badge status-{{ order.order_status|lower }}">{{ order.order_status }}</span></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty-inline">No orders have been assigned yet.</div>{% endif %}
+</section>
+{% endblock %}

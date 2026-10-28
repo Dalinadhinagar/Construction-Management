@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Edit material{% endblock %}{% block section %}Materials{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">CATALOG</p><h1>Edit material</h1><p>Update listing ownership, details, price, or stock.</p></div><a class="button button-secondary" href="{{ url_for('admin_materials') }}">← Back to materials</a></div>
+<section class="panel edit-material-panel"><div class="panel-heading"><div><h2>{{ material.material_name }}</h2><p>Changes apply to this shared supplier listing.</p></div></div>
+  {% if suppliers %}<form method="post" class="form-stack compact-form"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <label>Supplier<select name="supplier_id" required>{% for supplier in suppliers %}<option value="{{ supplier.user_id }}" {% if material.supplier_id == supplier.user_id %}selected{% endif %}>{{ supplier.name }}</option>{% endfor %}</select></label>
+    <label>Material name<input name="material_name" required maxlength="150" value="{{ material.material_name }}"></label>
+    <label>Description <span class="optional">(optional)</span><textarea name="description" rows="4" maxlength="2000">{{ material.description or '' }}</textarea></label>
+    <div class="form-row"><label>Unit<input name="unit" required maxlength="40" value="{{ material.unit }}"></label><label>Price per unit<input name="price" type="number" min="0.01" step="0.01" required value="{{ '%.2f'|format(material.price) }}"></label></div>
+    <label>Available stock<input name="stock_quantity" type="number" min="0" step="1" required value="{{ material.stock_quantity }}"></label>
+    <div class="form-actions"><button class="button button-primary" type="submit">Save changes</button><a class="button button-secondary" href="{{ url_for('admin_materials') }}">Cancel</a></div>
+  </form>{% else %}<div class="empty-inline">There are no active suppliers available for reassignment.</div>{% endif %}
+</section>
+{% endblock %}
